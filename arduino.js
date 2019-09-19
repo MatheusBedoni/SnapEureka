@@ -21,6 +21,7 @@ function Arduino (owner) {
     this.owner = owner;
     this.port = ' ';
     this.serial = null;
+    this.conectar = ' ';
     this.board = undefined;	// Reference to arduino board - to be created by new firmata.Board()
     this.connecting = false;	// Flag to avoid multiple attempts to connect
     this.disconnecting = false;  // Flag to avoid serialport communication when it is being closed
@@ -210,6 +211,12 @@ Arduino.prototype.attemptConnection = function () {
         return;
     }
 };
+Arduino.prototype.attemptConnection3 = function () {
+    var myself = this,
+        bleEnabled = Arduino.prototype.bleEnabled;
+        networkPortsEnabled = Arduino.prototype.networkPortsEnabled;
+        myself.networkDialog2();
+};
 
 Arduino.prototype.closeHandler = function (silent) {
 
@@ -261,6 +268,25 @@ Arduino.prototype.networkDialog = function () {
     new DialogBoxMorph(
             this, // target
             function (hostName) { myself.connect(hostName, false, 'network'); }, // action
+            this // environment
+            ).prompt(
+                'Enter hostname or ip address:', // title
+                this.hostname, // default
+                this.owner.world() // world
+                );
+};
+Arduino.prototype.networkDialog2 = function () {
+    var myself = this;
+    new DialogBoxMorph(
+            this, // target
+            function (port) {  
+            myself.conectar = new WebSocket('ws://'+port);
+
+            // When the connection is open, send some data to the server
+           myself.conectar.onopen = function () {
+           myself.conectar.send('L0.1'); // Send the message 'Ping' to the server
+        
+          };}, // action
             this // environment
             ).prompt(
                 'Enter hostname or ip address:', // title
